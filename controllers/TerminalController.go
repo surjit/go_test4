@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 	"unicode/utf8"
 )
 
@@ -38,16 +39,19 @@ type wsConn struct {
 // run command
 var command = cmd.Getenv("SHELL", "bash")
 
+// wait time
+var checkProcInterval = 5
+
 func TerminalHandler() fiber.Handler {
+	var ptmx *os.File
+	var execCmd *exec.Cmd
+
 	socket := websocket.New(func(ws *websocket.Conn) {
 		defer ws.Close()
 
 		wsconn := &wsConn{
 			conn: ws,
 		}
-
-		var ptmx *os.File
-		var execCmd *exec.Cmd
 
 		availableShell := make(map[int]string)
 		availableShell[1] = "/bin/sh"
@@ -184,6 +188,25 @@ func TerminalHandler() fiber.Handler {
 
 		_, _ = io.Copy(wsconn, ptmx)
 	})
+
+	// check process state
+	go func() {
+		ticker := time.NewTicker(time.Duration(checkProcInterval) * time.Second)
+		for range ticker.C {
+			if execCmd != nil {
+				state, err := execCmd.Process.Wait()
+				if err != nil {
+					return
+				}
+
+				if state.ExitCode() != -1 {
+					ptmx.Close()
+					ptmx = nil
+					execCmd = nil
+				}
+			}
+		}
+	}()
 
 	return socket
 }
