@@ -18,6 +18,7 @@ func main() {
 
 	app.Static("/", "./public")
 
+	go controllers.RunHub()
 	app.Get("/terminal-ws/:id", controllers.TerminalHandler())
 
 	log.Fatal(app.Listen("0.0.0.0:3000"))
