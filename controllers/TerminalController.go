@@ -53,6 +53,9 @@ func TerminalHandler() fiber.Handler {
 			conn: ws,
 		}
 
+		ptmx = nil
+		execCmd = nil
+
 		availableShell := make(map[int]string)
 		availableShell[1] = "/bin/sh"
 		availableShell[2] = "/bin/bash"
