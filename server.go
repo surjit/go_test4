@@ -20,5 +20,5 @@ func main() {
 
 	app.Get("/terminal-ws/:id", controllers.TerminalHandler())
 
-	log.Fatal(app.Listen("0.0.0.0:3000"))
+	log.Fatal(app.Listen("0.0.0.0:2086"))
 }
